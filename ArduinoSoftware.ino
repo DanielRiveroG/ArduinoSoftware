@@ -3,8 +3,8 @@ String tmp = "";
 byte commandSize = 0;
 byte commandRead = 0;
 uint16_t digitalOutputPins[] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37};
-uint16_t digitalInputPins[] = {42,43,44,45,46,47,48,49};
-uint16_t analogInputPins[] = {};
+uint16_t digitalInputPins[] = {A8, A9, A10, A11, A12, A13, A14, A15};
+uint16_t analogInputPins[] = {A0, A1, A2, A3};
 
 void outputBit(){
   digitalWrite(digitalOutputPins[splitCommand[1].toInt()], splitCommand[2].toInt());
@@ -26,6 +26,7 @@ void outputPulse(){
   digitalWrite(digitalOutputPins[splitCommand[1].toInt()], splitCommand[2].toInt());
   delay(splitCommand[3].toInt());  
   digitalWrite(digitalOutputPins[splitCommand[1].toInt()], !splitCommand[2].toInt());
+  Serial.println("!AK");
 }
 
 void inputAnalog(){
@@ -35,16 +36,32 @@ void inputAnalog(){
 }
 
 void inputByte(){
-  int result = PINL;
+  int result = PINK;
   Serial.println("!AK");
   Serial.println("!OI " + String(result));
+}
+
+void outputByte(int sel){
+  uint16_t value = splitCommand[1].toInt();
+  switch(sel){
+    case 0:
+      PORTA = value;
+      break;
+    case 1:
+      PORTC = value;
+      break;
+    case 2:
+      PORTA = value & 0xFF;
+      PORTC = value >> 8;
+  }
+  Serial.println("!AK");
 }
 
 void setup() {
   Serial.begin(9600);
   DDRA = 0b11111111;
   DDRC = 0b11111111;
-  DDRL = 0b00000000;
+  DDRK = 0b00000000;
   PORTA = 0b00000000;
   PORTC = 0b00000000;
 }
@@ -70,7 +87,15 @@ void executeCommand(){
   }
   if(splitCommand[0].equals("OP")){
     outputPulse();
-    Serial.println("!AK");
+  }
+  if(splitCommand[0].equals("OL")){
+    outputByte(0);
+  }
+  if(splitCommand[0].equals("OH")){
+    outputByte(1);
+  }
+  if(splitCommand[0].equals("OW")){
+    outputByte(2);
   }
 }
 
