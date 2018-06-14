@@ -4,6 +4,7 @@ byte commandSize = 0;
 byte commandRead = 0;
 uint16_t digitalOutputPins[] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37};
 uint16_t digitalInputPins[] = {A8, A9, A10, A11, A12, A13, A14, A15};
+uint16_t analogOutputPins[] ={11,12,13,44,45,46,5,8};
 uint16_t analogInputPins[] = {A0, A1, A2, A3};
 
 void outputBit(){
@@ -57,11 +58,20 @@ void outputByte(int sel){
   Serial.println("!AK");
 }
 
+void outputAnalog(){
+  analogWrite(analogOutputPins[splitCommand[1].toInt()], splitCommand[2].toInt()); 
+  Serial.println("!AK"); 
+}
+
 void setup() {
   Serial.begin(9600);
   DDRA = 0b11111111;
   DDRC = 0b11111111;
   DDRK = 0b00000000;
+  DDRB = 0b11100000;
+  DDRL = 0b00111000;
+  pinMode(8, OUTPUT);
+  pinMode(5, OUTPUT);
   PORTA = 0b00000000;
   PORTC = 0b00000000;
 }
@@ -96,6 +106,9 @@ void executeCommand(){
   }
   if(splitCommand[0].equals("OW")){
     outputByte(2);
+  }
+  if(splitCommand[0].equals("PW")){
+    outputAnalog();
   }
 }
 
