@@ -63,6 +63,23 @@ void outputAnalog(){
   Serial.println("!AK"); 
 }
 
+void waitBit(){
+  while(digitalRead(digitalInputPins[splitCommand[1].toInt()]) != splitCommand[2].toInt()){ 
+  }
+  Serial.println("!AK"); 
+}
+
+void waitAnalog(){
+  if(splitCommand[3].toInt()){
+    while(analogRead(analogInputPins[splitCommand[1].toInt()] > splitCommand[2].toInt())){
+    }  
+  }else{
+    while(analogRead(analogInputPins[splitCommand[1].toInt()] < splitCommand[2].toInt())){
+    }  
+  }
+  Serial.println("!AK");  
+}
+
 void setup() {
   Serial.begin(9600);
   DDRA = 0b11111111;
@@ -109,6 +126,12 @@ void executeCommand(){
   }
   if(splitCommand[0].equals("PW")){
     outputAnalog();
+  }
+  if(splitCommand[0].equals("WB")){
+    waitBit();
+  }
+  if(splitCommand[0].equals("WA")){
+    waitAnalog();
   }
 }
 
