@@ -96,43 +96,57 @@ void setup() {
 void executeCommand(){
   if(splitCommand[0].equals("HL")){
     Serial.println("!AK");
+    return;
   }
   if(splitCommand[0].equals("OB")){
     outputBit();
+    return;
   }
   if(splitCommand[0].equals("OT")){
     outputToggle();
+    return;
   }
   if(splitCommand[0].equals("IB")){
     inputBit();
+    return;
   }
   if(splitCommand[0].equals("AI")){
     inputAnalog();
+    return;
   }
   if(splitCommand[0].equals("IL")){
     inputByte();
+    return;
   }
   if(splitCommand[0].equals("OP")){
     outputPulse();
+    return;
   }
   if(splitCommand[0].equals("OL")){
     outputByte(0);
+    return;
   }
   if(splitCommand[0].equals("OH")){
     outputByte(1);
+    return;
   }
   if(splitCommand[0].equals("OW")){
     outputByte(2);
+    return;
   }
   if(splitCommand[0].equals("PW")){
     outputAnalog();
+    return;
   }
   if(splitCommand[0].equals("WB")){
     waitBit();
+    return;
   }
   if(splitCommand[0].equals("WA")){
     waitAnalog();
+    return;
   }
+  Serial.println("!NK");
 }
 
 void loop() {
@@ -153,9 +167,10 @@ void loop() {
       }else{
         tmp += c;  
       } 
-    }
-    if(c == '$'){
+    }else if(c == '$'){
       commandRead = 1;  
+    }else{
+      Serial.println("!NK");
     }
   }
 }
