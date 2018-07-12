@@ -6,6 +6,8 @@ uint16_t digitalOutputPins[] = {22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37}
 uint16_t digitalInputPins[] = {A8, A9, A10, A11, A12, A13, A14, A15};
 uint16_t analogOutputPins[] ={11,12,13,44,45,46,5,8};
 uint16_t analogInputPins[] = {A0, A1, A2, A3};
+uint16_t pressure = 0;
+volatile boolean estado = 0;
 
 void outputBit(){
   digitalWrite(digitalOutputPins[splitCommand[1].toInt()], splitCommand[2].toInt());
@@ -80,17 +82,47 @@ void waitAnalog(){
   Serial.println("!AK");  
 }
 
+void startRegulator(){
+  cli();
+  TIMSK3 |= (1<<OCIE3A);
+  sei();
+  pressure = splitCommand[3].toInt();
+}
+
+void changePressure(){
+  pressure = splitCommand[3].toInt();
+  Serial.println("!AK");
+}
+
+void stopRegulator(){
+  cli();
+  TIMSK3 &= ~(1<<OCIE3A);
+  sei();
+  digitalWrite(43,HIGH);
+}
+
 void setup() {
   Serial.begin(9600);
   DDRA = 0b11111111;
   DDRC = 0b11111111;
   DDRK = 0b00000000;
   DDRB = 0b11100000;
-  DDRL = 0b00111000;
+  DDRL = 0b01111000;
   pinMode(8, OUTPUT);
   pinMode(5, OUTPUT);
   PORTA = 0b00000000;
   PORTC = 0b00000000;
+  digitalWrite(43, HIGH);
+  pressure = 70;
+  //Interrupts
+  cli();
+  TCCR3A = 0;
+  TCCR3B = 0;
+  TCNT3 = 0;
+  TCCR3B |= (1<<WGM32);
+  TCCR3B |= (1<<CS32) | (1<<CS30);
+  OCR3A = 31000;
+  sei();
 }
 
 void executeCommand(){
@@ -146,7 +178,34 @@ void executeCommand(){
     waitAnalog();
     return;
   }
+  if(splitCommand[0].equals("RP")){
+    uint8_t op = splitCommand[2].toInt();
+    switch(op){
+      case 0:
+        startRegulator();
+        Serial.println("!AK");
+        break;
+      case 1:
+        changePressure();
+        break;
+      case 2:
+        stopRegulator();
+        Serial.println("!AK");
+        break;
+    }
+    return;  
+  }
   Serial.println("!NK");
+}
+
+ISR(TIMER3_COMPA_vect){
+  int temp1 = analogRead(A4);
+  double temperature = -87.82+((temp1*0.113*4630)/(1023-temp1));
+  if(temperature < (pressure-6)){
+    digitalWrite(43,LOW);
+  }else{
+    digitalWrite(43,HIGH);
+  }
 }
 
 void loop() {
